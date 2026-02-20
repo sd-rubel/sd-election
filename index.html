@@ -2,304 +2,632 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ভোটার ডাটাবেজ - বাংলাদেশ জামায়াতে ইসলামী</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>ভোটার ডাটাবেজ · জামায়াতে ইসলামী</title>
+    <!-- Google Fonts & professional icon set -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        @font-face {
-            font-family: 'Hind Siliguri';
-            src: url('HindSiliguri-Regular.ttf') format('truetype');
-            font-weight: normal; font-style: normal;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Hind Siliguri', sans-serif;
         }
 
         :root {
-            --primary-green: #006a4e;
-            --dark-green: #004d39;
-            --bg-color: #f3f7f5;
-            --white: #ffffff;
-            --tab-color: rgba(255, 255, 255, 0.15);
+            --primary: #006a4e;
+            --primary-dark: #004d39;
+            --primary-soft: #e8f3ef;
+            --accent-8: #0b7b69;
+            --accent-9: #2563eb;
+            --bg-light: #f4f9f7;
+            --card-white: #ffffff;
+            --text-dark: #1e293b;
+            --text-soft: #475569;
+            --border-light: #dee7e2;
+            --shadow-card: 0 8px 20px rgba(0, 40, 30, 0.08);
+            --gold-light: #fef9e7;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Hind Siliguri', sans-serif; 
-            background-color: var(--bg-color); 
-            display: flex; flex-direction: column; min-height: 100vh;
-            color: #1f2937;
-            text-rendering: optimizeLegibility;
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding-bottom: 20px;
         }
 
-        /* হেডার */
+        /* লোডার */
+        #loader {
+            position: fixed; inset: 0; background: #0f2c22; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.3s ease; color: white;
+        }
+        .loader-spinner {
+            width: 56px; height: 56px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid white; border-radius: 50%;
+            animation: spin 0.9s cubic-bezier(0.6,0.2,0.4,0.8) infinite; margin-bottom: 16px;
+        }
+        #loader p { font-size: 1.1rem; letter-spacing: 0.5px; opacity: 0.9; }
+
+        /* হেডার – ফিক্সড */
         .fixed-header {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: var(--dark-green);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            color: var(--white);
-            padding: 12px 16px;
+            background: var(--primary-dark);
+            color: white;
+            padding: 12px 16px 8px;
+            box-shadow: 0 4px 12px rgba(0,40,30,0.25);
         }
 
-        .header-top { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; width: 100%; }
-        .brand { display: flex; align-items: center; gap: 10px; }
-        .logo-img { width: 42px !important; height: 42px !important; min-width: 42px; object-fit: contain; }
-        .brand h1 { font-size: 1.05rem; font-weight: 700; line-height: 1.2; }
-        .brand p { font-size: 10px; opacity: 0.8; }
+        .header-top {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1200px; margin: 0 auto;
+        }
 
-        .header-right { display: flex; align-items: center; gap: 8px; }
-        .total-badge { background: var(--white); color: var(--dark-green); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 900; display: flex; align-items: center; gap: 3px; }
-        
-        .sync-btn { background: rgba(255,255,255,0.1); border: none; cursor: pointer; padding: 10px; border-radius: 50%; color: var(--white); display: flex; }
-        .sync-btn svg { width: 18px !important; height: 18px !important; }
+        .brand h1 {
+            font-size: 1.1rem; font-weight: 600; line-height: 1.3;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .brand i { font-size: 1.2rem; color: #ffd966; }
 
-        /* সার্চ বক্স */
-        .search-area { max-width: 1200px; margin: 12px auto 0; display: flex; background: var(--white); border-radius: 8px; overflow: hidden; position: relative; }
-        .search-area select { border: none; background: #f0f0f0; padding: 0 10px; font-size: 12px; outline: none; width: 95px; font-weight: bold; cursor: pointer; }
-        .search-area input { border: none; padding: 10px 40px 10px 12px; width: 100%; outline: none; font-size: 14px; }
-        .clear-search { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #eee; color: #777; width: 22px; height: 22px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; }
+        .header-actions {
+            display: flex; gap: 8px; align-items: center;
+        }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.15);
+            border: none; border-radius: 40px;
+            width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .icon-btn:hover { background: rgba(255,255,255,0.3); }
+        .total-badge {
+            background: white; color: var(--primary-dark); font-weight: 700;
+            padding: 8px 16px; border-radius: 40px; font-size: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* ফিল্টার সেকশন */
+        .filter-section {
+            max-width: 1200px; margin: 12px auto 0;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .search-card {
+            background: white; border-radius: 60px; padding: 4px 4px 4px 16px;
+            display: flex; align-items: center; gap: 6px;
+            border: 1px solid #ccdfd8;
+            box-shadow: 0 2px 6px rgba(0,60,40,0.05);
+        }
+        .search-card i {
+            color: var(--primary); font-size: 1rem;
+        }
+        .search-card select {
+            border: none; background: #f0f7f3; padding: 8px 12px;
+            border-radius: 40px; font-size: 0.85rem; font-weight: 500;
+            color: var(--primary-dark); outline: none;
+            cursor: pointer;
+        }
+        .search-card input {
+            border: none; flex: 1; padding: 10px 0; font-size: 0.95rem;
+            background: transparent; outline: none; color: var(--text-dark);
+        }
+
+        /* বয়স ফিল্টার */
+        .age-filter-card {
+            background: white; border-radius: 40px; padding: 4px 12px 4px 18px;
+            display: flex; align-items: center; gap: 10px;
+            border: 1px solid #ccdfd8;
+        }
+        .age-filter-card i {
+            color: var(--primary); font-size: 1rem;
+        }
+        .age-filter-card select {
+            width: 100%; border: none; background: transparent; padding: 12px 0;
+            font-size: 0.95rem; font-weight: 400; color: var(--text-dark);
+            outline: none; cursor: pointer;
+        }
 
         /* ট্যাব */
-        .tabs-container { display: flex; width: 100%; max-width: 1200px; margin: 12px auto 0; gap: 4px; }
-        .category-tab { flex: 1; padding: 8px 2px; border-radius: 6px; cursor: pointer; font-size: 11px; color: #ffffff; white-space: nowrap; text-align: center; background: var(--tab-color); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .category-tab.active { background: var(--white) !important; color: var(--dark-green) !important; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-
-        /* কন্টেন্ট এরিয়া */
-        .content-wrapper { padding: 220px 16px 30px; max-width: 1200px; margin: 0 auto; width: 100%; flex: 1; }
-        @media (max-width: 768px) { .content-wrapper { padding-top: 245px; } }
-
-        /* গ্রিড অপ্টিমাইজেশন */
-        .voter-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            gap: 20px;
-            will-change: transform; 
+        .tabs-grid {
+            max-width: 1200px; margin: 16px auto 0;
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        .tab-item {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white; padding: 8px 0; border-radius: 40px;
+            font-size: 0.8rem; font-weight: 600; text-align: center;
+            cursor: pointer; transition: 0.2s;
+            white-space: nowrap;
+        }
+        .tab-item i { margin-right: 4px; font-size: 0.7rem; }
+        .tab-item.active {
+            background: white; color: var(--primary-dark);
+            border-color: white; font-weight: 700;
         }
 
-        .voter-card { 
-            background: var(--white); 
-            border-radius: 12px; 
-            border: 1px solid #e2e8f0; 
-            overflow: hidden; 
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            contain: layout silver; 
+        /* মূল কন্টেন্ট */
+        .content-wrapper {
+            max-width: 1200px; margin: 0 auto;
+            padding: 240px 12px 40px;
+        }
+        @media (max-width: 500px) {
+            .content-wrapper { padding-top: 260px; }
+        }
+
+        /* ভোটার গ্রিড */
+        .voter-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+        }
+
+        .voter-card {
+            background: var(--card-white);
+            border-radius: 24px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-light);
+            transition: 0.2s;
+            position: relative;
         }
         
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .serial-box { background: var(--primary-green); color: var(--white); padding: 4px 15px; border-radius: 0 0 12px 0; font-weight: 700; }
-        .id-badge { margin: 8px; font-size: 12px; font-weight: 800; color: #1e40af; background: #eff6ff; padding: 3px 10px; border-radius: 4px; border: 1px solid #dbeafe; }
+        .voter-card.word-8 { border-left: 6px solid var(--accent-8); }
+        .voter-card.word-9 { border-left: 6px solid var(--accent-9); }
 
-        .card-body { padding: 15px; text-align: left; }
-        .card-body h3 { font-size: 17px; color: var(--dark-green); border-bottom: 1px solid #f3f4f6; padding-bottom: 8px; margin-bottom: 10px; }
-        .info-row { display: flex; gap: 8px; margin-bottom: 6px; font-size: 14px; }
-        .info-label { color: #9ca3af; width: 45px; flex-shrink: 0; }
-        .info-value { color: #374151; font-weight: 500; }
+        .voter-card::before {
+            content: attr(data-watermark);
+            position: absolute; bottom: 8px; right: 12px;
+            font-size: 6rem; font-weight: 800;
+            color: rgba(0,80,60,0.02);
+            z-index: 0;
+            pointer-events: none;
+        }
 
-        .card-footer { margin-top: 12px; padding-top: 10px; border-top: 1px solid #f9fafb; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-        .date-icon { display: flex; align-items: center; gap: 5px; color: #6b7280; }
-        .date-icon svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-        .address-tag { background: #f0fdf4; color: #166534; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px 4px;
+        }
+        .serial-pill {
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+            font-weight: 700; font-size: 0.8rem;
+            padding: 4px 14px; border-radius: 30px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .id-badge {
+            background: #f1f8f4;
+            padding: 4px 12px; border-radius: 30px;
+            font-size: 0.7rem; font-weight: 600; color: #2f5e4a;
+        }
 
-        .no-data-container { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; color: #9ca3af; }
-        .no-data-container svg { width: 80px; height: 80px; margin-bottom: 15px; opacity: 0.3; }
+        .card-body {
+            padding: 8px 16px 12px;
+            position: relative; z-index: 2;
+        }
 
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 25px; border-radius: 50px; font-size: 13px; z-index: 2000; opacity: 0; transition: 0.3s; pointer-events: none; }
-        footer { padding: 20px; text-align: center; font-size: 11px; color: #9ca3af; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        mark { background: #fef08a; color: #854d0e; padding: 0 2px; border-radius: 2px; }
+        .voter-name {
+            font-size: 1.4rem; font-weight: 700; line-height: 1.3;
+            margin-bottom: 8px; color: #0b3b2e;
+            word-break: break-word;
+        }
+
+        .info-line {
+            display: flex; align-items: baseline; gap: 10px;
+            font-size: 0.9rem; margin-bottom: 6px;
+            color: var(--text-soft);
+        }
+        .info-line i {
+            width: 20px; color: var(--primary); font-size: 0.85rem;
+        }
+
+        .age-banner {
+            background: var(--gold-light);
+            border: 1px solid #f7e5b5;
+            border-radius: 40px;
+            padding: 8px 14px; margin: 10px 0 8px;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.9rem; font-weight: 600; color: #8d6300;
+        }
+
+        .card-footer {
+            display: flex; justify-content: space-between;
+            border-top: 1px dashed #cee2d8;
+            padding-top: 10px; margin-top: 4px;
+            font-size: 0.8rem; color: #417561;
+        }
+        .address-chip {
+            background: #ecf6f2; padding: 4px 12px; border-radius: 30px;
+            font-weight: 500; display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        /* টোস্ট */
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #1e3d35; color: #f3ffe0; padding: 12px 28px;
+            border-radius: 60px; font-size: 0.9rem; font-weight: 500;
+            box-shadow: 0 12px 24px rgba(0,30,20,0.3); z-index: 9999;
+            opacity: 0; transition: opacity 0.25s;
+            border: 1px solid #467a66;
+        }
+
+        .empty-state {
+            grid-column: 1/-1; text-align: center; padding: 60px 20px;
+            background: white; border-radius: 48px; color: #6a8b7e;
+            font-size: 1.2rem; border: 2px dashed #c2ddd2;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="updatePopup" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: none; width: 90%; max-width: 400px;">
-        <div style="background: white; border-left: 4px solid #22c55e; padding: 15px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px;">
-            <div style="flex:1">
-                <p style="font-weight:bold; font-size:14px;">নতুন তথ্য পাওয়া গেছে!</p>
-                <button onclick="syncData(true)" style="background: #16a34a; color: white; border: none; padding: 6px 15px; border-radius: 50px; font-weight: bold; font-size: 12px; cursor: pointer; margin-top: 5px;">আপডেট করুন</button>
-            </div>
+<div id="loader">
+    <div class="loader-spinner"></div>
+    <p>ভোটার তথ্য আনছে ...</p>
+</div>
+
+<header class="fixed-header">
+    <div class="header-top">
+        <div class="brand">
+            <i class="fas fa-mosque"></i>
+            <h1>জামায়াতে ইসলামী · ভোটার</h1>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="downloadExcel()" title="এক্সেল ডাউনলোড"><i class="fas fa-download"></i></button>
+            <button class="icon-btn" onclick="manualSync()" title="সিঙ্ক/রিফ্রেশ"><i class="fas fa-sync-alt" id="syncIcon"></i></button>
+            <span class="total-badge" id="totalCount">০</span>
         </div>
     </div>
 
-    <header class="fixed-header">
-        <div class="header-top">
-            <div class="brand">
-                <img src="logo.png" alt="Logo" class="logo-img">
-                <div>
-                    <h1>বাংলাদেশ জামায়াতে ইসলামী</h1>
-                    <p>দক্ষিণ শালিকা শাখা, মেহেরপুর</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <button onclick="manualSync()" class="sync-btn">
-                    <svg id="syncIcon" viewBox="0 0 24 24" stroke="currentColor" fill="none"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                </button>
-                <div class="total-badge">
-                    <span>মোট:</span> <span id="totalDisplay">০</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="search-area">
+    <div class="filter-section">
+        <div class="search-card">
+            <i class="fas fa-sliders-h"></i>
             <select id="searchFilter">
                 <option value="all">সব তথ্য</option>
                 <option value="Name">নাম</option>
-                <option value="Serial">সিরিয়াল</option>
+                <option value="Father_Name">পিতা</option>
                 <option value="Voter_No">ভোটার নং</option>
             </select>
-            <input type="text" id="searchInput" placeholder="খুঁজুন..." autocomplete="off">
-            <div id="clearBtn" class="clear-search" onclick="clearSearch()">&times;</div>
+            <input type="text" id="searchInput" placeholder="নাম/পিতা/ভোটার নং" autocomplete="off">
         </div>
 
-        <div class="tabs-container" id="tabs">
-            <div class="category-tab active" data-source="all">সব তথ্য</div>
-            <div class="category-tab" data-source="8p">৮ নং পুরুষ</div>
-            <div class="category-tab" data-source="8m">৮ নং মহিলা</div>
-            <div class="category-tab" data-source="9p">৯ নং পুরুষ</div>
-            <div class="category-tab" data-source="9m">৯ নং মহিলা</div>
+        <div class="age-filter-card">
+            <i class="fas fa-calendar-alt"></i>
+            <select id="ageRangeFilter">
+                <option value="all">সব বয়সী</option>
+                <option value="65up">৬৫ বছর ও তদূর্ধ্ব</option>
+                <option value="64">৬৪ বছর (৬৫ হয়নি)</option>
+                <option value="63">৬৩ বছর (৬৪ হয়নি)</option>
+                <option value="62">৬২ বছর (৬৩ হয়নি)</option>
+                <option value="61">৬১ বছর (৬২ হয়নি)</option>
+            </select>
         </div>
-    </header>
+    </div>
 
-    <main class="content-wrapper">
-        <div id="voterContainer" class="voter-grid"></div>
-    </main>
+    <div class="tabs-grid" id="tabList">
+        <div class="tab-item active" data-source="all"><i class="fas fa-layer-group"></i> সব</div>
+        <div class="tab-item" data-source="8p"><i class="fas fa-male"></i> ৮ পুরুষ</div>
+        <div class="tab-item" data-source="8m"><i class="fas fa-female"></i> ৮ মহিলা</div>
+        <div class="tab-item" data-source="9p"><i class="fas fa-male"></i> ৯ পুরুষ</div>
+        <div class="tab-item" data-source="9m"><i class="fas fa-female"></i> ৯ মহিলা</div>
+    </div>
+</header>
 
-    <div id="toast"></div>
+<main class="content-wrapper">
+    <div id="voterContainer" class="voter-grid"></div>
+</main>
 
-    <footer>Developed by Sd Rubel</footer>
+<div id="toast"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+<script>
+    (function() {
+        // কনফিগারেশন
         const baseUrl = 'https://raw.githubusercontent.com/sd-rubel/sd-election/main/';
         const files = { '8p': '8p.csv', '8m': '8m.csv', '9p': '9p.csv', '9m': '9m.csv' };
         
-        let masterData = JSON.parse(localStorage.getItem('voterDB')) || { '8p': [], '8m': [], '9p': [], '9m': [] };
+        // ডাটা স্টোর
+        let masterData = { '8p': [], '8m': [], '9p': [], '9m': [] };
         let activeTab = 'all';
-        let searchTimer;
+        let filteredFullList = [];
+        let allVoters = []; // সব ভোটার একসাথে
+        
+        // আজকের তারিখ (২১ ফেব্রুয়ারি ২০২৬)
+        const TODAY = new Date(2026, 1, 21);
 
-        // অ্যাপ ইনিশিয়ালাইজেশন
-        window.onload = () => {
-            renderData();
-            setTimeout(checkUpdateAvailable, 2000);
-            setupListeners();
-        };
-
-        function setupListeners() {
-            const input = document.getElementById('searchInput');
-            input.addEventListener('input', () => {
-                clearTimeout(searchTimer);
-                document.getElementById('clearBtn').style.display = input.value ? 'flex' : 'none';
-                searchTimer = setTimeout(renderData, 100); // ১০০ মিলি-সেকেন্ড ডিলে যা পারফরম্যান্স বাড়াবে
-            });
-
-            document.getElementById('tabs').addEventListener('click', (e) => {
-                if (e.target.classList.contains('category-tab')) {
-                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                    e.target.classList.add('active');
-                    activeTab = e.target.dataset.source;
-                    renderData();
-                    window.scrollTo(0,0);
-                }
-            });
+        // ফাংশন: লোডার লুকাও
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 400);
         }
 
-        async function syncData(isManual = false) {
-            const icon = document.getElementById('syncIcon');
-            icon.style.animation = "spin 1s linear infinite";
-            try {
-                const results = await Promise.all(Object.entries(files).map(([key, file]) => 
-                    new Promise(res => {
-                        Papa.parse(`${baseUrl}${file}?t=${Date.now()}`, {
-                            download: true, header: true, skipEmptyLines: true,
-                            complete: (output) => res({ key, data: output.data.filter(i => i.Name) })
-                        });
-                    })
-                ));
-                results.forEach(r => masterData[r.key] = r.data);
-                localStorage.setItem('voterDB', JSON.stringify(masterData));
-                localStorage.setItem('dbId', Date.now());
-                renderData();
-                if(isManual) showToast("আপডেট সম্পন্ন!");
-            } catch (e) { showToast("ত্রুটি হয়েছে!"); }
-            finally { icon.style.animation = ""; document.getElementById('updatePopup').style.display = 'none'; }
-        }
-
-        function renderData() {
-            const container = document.getElementById('voterContainer');
-            const search = document.getElementById('searchInput').value.trim();
-            const filter = document.getElementById('searchFilter').value;
+        // ফাংশন: ডিওবি পার্স
+        function parseDOB(dobStr) {
+            if (!dobStr) return null;
+            // যেকোনো ফরম্যাট: dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy
+            const match = dobStr.toString().match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+            if (!match) return null;
             
-            let data = activeTab === 'all' ? Object.values(masterData).flat() : masterData[activeTab];
+            let d = parseInt(match[1]);
+            let m = parseInt(match[2]) - 1;
+            let y = parseInt(match[3]);
+            
+            // ২ ডিজিটের বছর ঠিক করা
+            if (y < 100) {
+                y = y > 30 ? 1900 + y : 2000 + y; // 30 এর বেশি হলে 1900, না হলে 2000
+            }
+            
+            const date = new Date(y, m, d);
+            return isNaN(date) ? null : date;
+        }
 
-            if (search) {
-                const s = search.toLowerCase();
-                data = data.filter(v => {
-                    if (filter === 'all') return (v.Name && v.Name.includes(search)) || (v.Voter_No && v.Voter_No.includes(search)) || (v.Serial && v.Serial.includes(search));
-                    return v[filter] && v[filter].includes(search);
-                });
+        // ফাংশন: বিস্তারিত বয়স
+        function getDetailedAge(dobStr) {
+            const bdate = parseDOB(dobStr);
+            if (!bdate) return null;
+            
+            let years = TODAY.getFullYear() - bdate.getFullYear();
+            let months = TODAY.getMonth() - bdate.getMonth();
+            let days = TODAY.getDate() - bdate.getDate();
+            
+            if (days < 0) {
+                months--;
+                let lastMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 0);
+                days += lastMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            
+            return { years, months, days, text: `${years} বছর, ${months} মাস, ${days} দিন` };
+        }
+
+        // ফাংশন: সব ভোটারের বয়স ক্যালকুলেট
+        function recalcAllAges() {
+            Object.keys(masterData).forEach(key => {
+                masterData[key] = masterData[key].map(v => ({
+                    ...v,
+                    ageDetails: getDetailedAge(v.DOB)
+                }));
+            });
+            
+            // অল ভোটার আপডেট
+            allVoters = [
+                ...masterData['8p'].map(v => ({...v, word: '8'})),
+                ...masterData['8m'].map(v => ({...v, word: '8'})),
+                ...masterData['9p'].map(v => ({...v, word: '9'})),
+                ...masterData['9m'].map(v => ({...v, word: '9'}))
+            ];
+        }
+
+        // ফাংশন: ফিল্টার ও রেন্ডার
+        function renderData() {
+            const search = document.getElementById('searchInput').value.trim().toLowerCase();
+            const filterType = document.getElementById('searchFilter').value;
+            const ageRange = document.getElementById('ageRangeFilter').value;
+
+            // সোর্স নির্ধারণ (অল বা নির্দিষ্ট ট্যাব)
+            let source;
+            if (activeTab === 'all') {
+                source = allVoters;
+            } else {
+                source = masterData[activeTab] || [];
             }
 
-            document.getElementById('totalDisplay').innerText = data.length.toLocaleString('bn-BD');
+            // ফিল্টার প্রয়োগ
+            filteredFullList = source.filter(v => {
+                // বয়স ফিল্টার
+                if (ageRange !== 'all') {
+                    if (!v.ageDetails) return false;
+                    const y = v.ageDetails.years;
+                    if (ageRange === '65up' && y < 65) return false;
+                    else if (ageRange !== '65up' && y != parseInt(ageRange)) return false;
+                }
+                
+                // সার্চ ফিল্টার
+                if (search) {
+                    let fieldValue;
+                    if (filterType === 'all') {
+                        fieldValue = `${v.Name || ''} ${v.Father_Name || ''} ${v.Voter_No || ''}`.toLowerCase();
+                    } else {
+                        fieldValue = (v[filterType] || '').toLowerCase();
+                    }
+                    return fieldValue.includes(search);
+                }
+                
+                return true;
+            });
 
-            if (data.length === 0) {
-                container.innerHTML = `<div class="no-data-container"><h2>তথ্য পাওয়া যায়নি</h2></div>`;
+            // কাউন্ট আপডেট
+            document.getElementById('totalCount').innerText = filteredFullList.length.toLocaleString('bn-IN');
+
+            // প্রথম ১৫০ টি দেখাই (পারফরম্যান্স)
+            const displayList = filteredFullList.slice(0, 150);
+
+            if (displayList.length === 0) {
+                document.getElementById('voterContainer').innerHTML = '<div class="empty-state"><i class="fas fa-database"></i><br/>কোনো ভোটার তথ্য নেই</div>';
                 return;
             }
 
-            // পারফরম্যান্সের জন্য Batch Processing
-            const limit = 100; // শুরুতে ১০০টি কার্ড দেখাবে যা স্ক্রলিং ফাস্ট রাখবে
-            const displayData = data.slice(0, limit);
-            
+            // এইচটিএমএল তৈরি
             let html = '';
-            for (let i = 0; i < displayData.length; i++) {
-                const v = displayData[i];
+            displayList.forEach(v => {
+                const wordClass = v.word === '9' ? 'word-9' : 'word-8';
+                const watermark = v.word === '9' ? '৯' : '৮';
+                
                 html += `
-                    <div class="voter-card">
-                        <div class="card-header">
-                            <div class="serial-box">${v.Serial || '০'}</div>
-                            <div class="id-badge">ভোটার নং: ${v.Voter_No}</div>
+                <div class="voter-card ${wordClass}" data-watermark="${watermark}">
+                    <div class="card-header">
+                        <span class="serial-pill"><i class="fas fa-hashtag"></i> ${v.Serial || ''}</span>
+                        <span class="id-badge"><i class="far fa-id-card"></i> ${v.Voter_No || ''}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="voter-name">${v.Name || ''}</div>
+                        <div class="info-line"><i class="fas fa-user-tie"></i> <strong>পিতা:</strong> ${v.Father_Name || ''}</div>
+                        <div class="info-line"><i class="fas fa-user"></i> <strong>মাতা:</strong> ${v.Mother_Name || '—'}</div>
+                        <div class="age-banner"><i class="fas fa-hourglass-half"></i> ${v.ageDetails ? v.ageDetails.text : 'বয়স গণনা হয়নি'}</div>
+                        <div class="card-footer">
+                            <span><i class="far fa-calendar-alt"></i> ${v.DOB || ''}</span>
+                            <span class="address-chip"><i class="fas fa-map-pin"></i> ${(v.Address || '').substring(0,18)}${(v.Address || '').length > 18 ? '…' : ''}</span>
                         </div>
-                        <div class="card-body">
-                            <h3>${search ? v.Name.split(search).join('<mark>'+search+'</mark>') : v.Name}</h3>
-                            <div class="info-row"><span class="info-label">পিতা:</span><span class="info-value">${v.Father_Name}</span></div>
-                            <div class="info-row"><span class="info-label">মাতা:</span><span class="info-value">${v.Mother_Name}</span></div>
-                            <div class="card-footer">
-                                <span class="date-icon">📅 ${v.DOB}</span>
-                                <span class="address-tag">📍 ${v.Address}</span>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-            container.innerHTML = html;
+                    </div>
+                </div>`;
+            });
+            
+            document.getElementById('voterContainer').innerHTML = html;
         }
 
-        function clearSearch() {
-            const input = document.getElementById('searchInput');
-            input.value = '';
-            document.getElementById('clearBtn').style.display = 'none';
-            renderData();
-            input.focus();
-        }
-
-        async function manualSync() {
-            if (!navigator.onLine) return showToast("ইন্টারনেট নেই!");
-            await syncData(true);
-        }
-
-        async function checkUpdateAvailable() {
-            if (!navigator.onLine) return;
+        // ফাংশন: সিঙ্ক (ডাটা লোড)
+        window.manualSync = async function() {
+            const icon = document.getElementById('syncIcon');
+            if (icon) icon.style.animation = 'spin 0.8s linear infinite';
+            
+            showToast('ডাটা লোড হচ্ছে...');
+            
             try {
-                const res = await fetch(baseUrl + '8p.csv?t=' + Date.now());
-                if (res.ok) {
-                    const freshId = res.headers.get('content-length');
-                    if (localStorage.getItem('dbId') && freshId != localStorage.getItem('lastSize')) {
-                        document.getElementById('updatePopup').style.display = 'block';
-                        localStorage.setItem('lastSize', freshId);
-                    }
+                // সব ফাইল একসাথে লোড
+                const results = await Promise.all(
+                    Object.entries(files).map(([key, file]) => 
+                        new Promise((resolve) => {
+                            Papa.parse(baseUrl + file + '?t=' + Date.now(), {
+                                download: true,
+                                header: true,
+                                skipEmptyLines: true,
+                                complete: (results) => {
+                                    const data = results.data.filter(row => row.Name && row.Name.trim() !== '');
+                                    resolve({ key, data });
+                                },
+                                error: (error) => {
+                                    console.error(`${file} লোড করতে সমস্যা:`, error);
+                                    resolve({ key, data: [] }); // এরর হলেও খালি অ্যারে
+                                }
+                            });
+                        })
+                    )
+                );
+                
+                // ডাটা সংরক্ষণ
+                results.forEach(r => {
+                    masterData[r.key] = r.data;
+                });
+                
+                // বয়স ক্যালকুলেট
+                recalcAllAges();
+                
+                // লোকাল স্টোরেজে সংরক্ষণ
+                localStorage.setItem('voterDB', JSON.stringify(masterData));
+                
+                // রেন্ডার
+                renderData();
+                
+                // টোটাল কাউন্ট দেখান
+                const total = allVoters.length;
+                showToast(`✅ ${total} টি ভোটার লোড হয়েছে`);
+                
+            } catch (error) {
+                console.error('সিঙ্ক এরর:', error);
+                showToast('❌ সার্ভার সংযোগ ব্যর্থ');
+                
+                // ক্যাশ থাকলে সেটা দেখান
+                if (allVoters.length > 0) {
+                    renderData();
                 }
-            } catch(e) {}
+            } finally {
+                if (icon) icon.style.animation = '';
+                hideLoader();
+            }
+        };
+
+        // ফাংশন: ডাউনলোড
+        window.downloadExcel = function() {
+            if (filteredFullList.length === 0) {
+                showToast('📭 কোনো তথ্য নেই');
+                return;
+            }
+            
+            const exportData = filteredFullList.map(v => ({
+                'ক্রমিক': v.Serial,
+                'নাম': v.Name,
+                'পিতার নাম': v.Father_Name,
+                'মাতার নাম': v.Mother_Name || '',
+                'ভোটার নং': v.Voter_No,
+                'জন্ম তারিখ': v.DOB,
+                'বয়স': v.ageDetails ? v.ageDetails.text : '',
+                'ঠিকানা': v.Address
+            }));
+            
+            const csv = Papa.unparse(exportData);
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Jamaat_Voter_List_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            showToast('⬇️ ডাউনলোড শুরু');
+        };
+
+        // ফাংশন: টোস্ট
+        window.showToast = function(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2000);
+        };
+
+        // ইভেন্ট সেটআপ
+        function setupEvents() {
+            document.getElementById('searchInput').addEventListener('input', renderData);
+            document.getElementById('ageRangeFilter').addEventListener('change', renderData);
+            document.getElementById('searchFilter').addEventListener('change', renderData);
+            
+            document.getElementById('tabList').addEventListener('click', (e) => {
+                const tab = e.target.closest('.tab-item');
+                if (!tab) return;
+                
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeTab = tab.dataset.source;
+                renderData();
+            });
         }
 
-        function showToast(m) {
-            const t = document.getElementById('toast'); t.innerText = m; t.style.opacity = '1';
-            setTimeout(() => t.style.opacity = '0', 2000);
+        // পৃষ্ঠা লোড হলে
+        window.onload = async () => {
+            // লোকাল ক্যাশ চেক
+            const cached = localStorage.getItem('voterDB');
+            
+            if (cached) {
+                try {
+                    masterData = JSON.parse(cached);
+                    recalcAllAges();
+                    renderData();
+                    hideLoader();
+                    
+                    // ব্যাকগ্রাউন্ডে আপডেট চেক
+                    setTimeout(() => manualSync(), 1000);
+                    
+                } catch (e) {
+                    console.warn('ক্যাশ করাপ্ট, নতুন লোড হচ্ছে');
+                    await manualSync();
+                }
+            } else {
+                await manualSync();
+            }
+            
+            setupEvents();
+        };
+
+        // পৃষ্ঠা লোড শেষে লোডার হাইড নিশ্চিত করা
+        if (document.readyState === 'complete') {
+            setTimeout(hideLoader, 500);
         }
-    </script>
+    })();
+</script>
 </body>
 </html>
